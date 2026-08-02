@@ -44,10 +44,6 @@ public class FormatRestResponse implements ResponseBodyAdvice {
             return RestResponse.error(body != null ? body.toString() : "Unknown error");
         }
 
-        if (status >= 300 && status < 400) {
-            return body;
-        }
-
         return RestResponse.success(body);
     }
 }

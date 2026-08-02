@@ -1,27 +1,27 @@
 package me.xjanua.spring.backend.service;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import me.xjanua.spring.backend.enums.ShortLinkStatus;
-import me.xjanua.spring.backend.exception.NotFoundException;
+import me.xjanua.spring.backend.dto.clickEvent.ClickEventCreateDto;
 import me.xjanua.spring.backend.model.ShortLink;
-import me.xjanua.spring.backend.repository.ShortLinkRepository;
 
 @Service
 @RequiredArgsConstructor
 public class RedirectService {
 
-    private final ShortLinkRepository shortLinkRepository;
+    private final ShortLinkService shortLinkService;
+    private final ClickEventService clickEventService;
 
-    public ShortLink resolveActiveLink(String shortCode) {
-        ShortLink link = shortLinkRepository.findByShortCode(shortCode)
-                .orElseThrow(() -> new NotFoundException("Short link not found"));
+    public ShortLink findShortLink(String shortCode) {
+        return shortLinkService.findByShortCode(shortCode);
+    }
 
-        if (link.getStatus() != ShortLinkStatus.ACTIVE) {
-            throw new NotFoundException("Short link is not available");
-        }
-
-        return link;
+    @Async
+    @Transactional
+    public void recordClickAsync(ClickEventCreateDto dto) {
+        clickEventService.create(dto);
     }
 }

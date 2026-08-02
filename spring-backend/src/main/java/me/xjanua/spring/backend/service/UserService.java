@@ -14,13 +14,13 @@ import lombok.RequiredArgsConstructor;
 import me.xjanua.spring.backend.dto.PaginationDTO;
 import me.xjanua.spring.backend.dto.user.UserDetailResponse;
 import me.xjanua.spring.backend.dto.user.UserRegisterRequest;
-import me.xjanua.spring.backend.enums.ErrorCode;
 import me.xjanua.spring.backend.exception.BadRequestException;
 import me.xjanua.spring.backend.exception.NotFoundException;
 import me.xjanua.spring.backend.mapper.UserMapper;
 import me.xjanua.spring.backend.model.User;
 import me.xjanua.spring.backend.repository.UserRepository;
 import me.xjanua.spring.backend.util.PaginationUtil;
+import me.xjanua.spring.backend.util.SecurityUtil;
 
 @Service
 @RequiredArgsConstructor
@@ -30,29 +30,37 @@ public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
     public User findById(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND.name()));
+                .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND.name()));
+                .orElseThrow(() -> new NotFoundException("User not found"));
+    }
+
+    public User fetchCurrentUser() {
+        return userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
     public User register(UserRegisterRequest request) {
         if (isEmailExists(request.getEmail())) {
-            throw new BadRequestException(ErrorCode.EMAIL_ALREADY_EXISTS.name());
+            throw new BadRequestException("Email already exists");
         }
         if (!request.getPassword().equals(request.getConfirmPassword())) {
-            throw new BadRequestException(ErrorCode.PASSWORD_MISMATCH.name());
+            throw new BadRequestException("Password mismatch");
         }
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .build();
-        userRepository.save(user);
-        return user;
+        return save(user);
     }
 
     public PaginationDTO.Response fetchAll(Specification<User> spec, Pageable pageable) {
