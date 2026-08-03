@@ -6,18 +6,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import me.xjanua.spring.backend.dto.clickEvent.ClickEventCreateDto;
-import me.xjanua.spring.backend.model.ShortLink;
 
 @Service
 @RequiredArgsConstructor
 public class RedirectService {
 
-    private final ShortLinkService shortLinkService;
     private final ClickEventService clickEventService;
-
-    public ShortLink findShortLink(String shortCode) {
-        return shortLinkService.findByShortCode(shortCode);
-    }
 
     @Async
     @Transactional

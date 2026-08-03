@@ -4,12 +4,11 @@ import java.time.LocalDateTime;
 
 import lombok.Builder;
 import lombok.Getter;
-import me.xjanua.spring.backend.model.ShortLink;
 
 @Getter
 @Builder
 public class ClickEventCreateDto {
-    private ShortLink shortLink;
+    private Long shortLinkId;
     private LocalDateTime clickedAt;
     private String ipHash;
     private String userAgent;

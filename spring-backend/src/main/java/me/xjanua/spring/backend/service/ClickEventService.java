@@ -1,11 +1,17 @@
 package me.xjanua.spring.backend.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import me.xjanua.spring.backend.dto.DailyClickCountDto;
 import me.xjanua.spring.backend.dto.clickEvent.ClickEventCreateDto;
 import me.xjanua.spring.backend.model.ClickEvent;
+import me.xjanua.spring.backend.model.ShortLink;
 import me.xjanua.spring.backend.repository.ClickEventRepository;
 
 @Service
@@ -19,14 +25,30 @@ public class ClickEventService {
         return clickEventRepository.save(clickEvent);
     }
 
+    public List<DailyClickCountDto> getDailyClickCounts(LocalDate from, LocalDate to) {
+        if (from == null || to == null) {
+            throw new IllegalArgumentException("from và to không được null");
+        }
+
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException("from không được sau to");
+        }
+
+        LocalDateTime fromDateTime = from.atStartOfDay();
+
+        LocalDateTime toExclusive = to.plusDays(1).atStartOfDay();
+
+        return clickEventRepository.countClicksByDay(fromDateTime, toExclusive);
+    }
+
     @Transactional
     public ClickEvent create(ClickEventCreateDto dto) {
+        ShortLink shortLink = shortLinkService.findById(dto.getShortLinkId());
         boolean isUnique = Boolean.FALSE.equals(dto.getIsBot())
-                && !clickEventRepository.existsByShortLink_IdAndIpHash(
-                        dto.getShortLink().getId(), dto.getIpHash());
+                && !clickEventRepository.existsByShortLink_IdAndIpHash(dto.getShortLinkId(), dto.getIpHash());
 
         ClickEvent saved = save(ClickEvent.builder()
-                .shortLink(dto.getShortLink())
+                .shortLink(shortLink)
                 .clickedAt(dto.getClickedAt())
                 .ipHash(dto.getIpHash())
                 .userAgent(dto.getUserAgent())
