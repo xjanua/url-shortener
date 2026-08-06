@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import me.xjanua.spring.backend.dto.DailyClickCountDto;
+import me.xjanua.spring.backend.dto.DashboardSummaryDto;
 import me.xjanua.spring.backend.service.ClickEventService;
+import me.xjanua.spring.backend.service.DashboardService;
 
 @RestController
 @RequestMapping("/dashboard")
@@ -19,12 +21,18 @@ import me.xjanua.spring.backend.service.ClickEventService;
 public class DashboardController {
 
     private final ClickEventService clickEventService;
+    private final DashboardService dashboardService;
+
+    @GetMapping("/summary")
+    public ResponseEntity<DashboardSummaryDto> getSummary() {
+        DashboardSummaryDto response = dashboardService.getCurrentUserSummary();
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/daily-clicks")
-    public ResponseEntity<List<DailyClickCountDto>> getDailyClicks(
-            @RequestParam LocalDate from,
+    public ResponseEntity<List<DailyClickCountDto>> getDailyClicks(@RequestParam LocalDate from,
             @RequestParam LocalDate to) {
-        List<DailyClickCountDto> response = clickEventService.getDailyClickCounts(from, to);
+        List<DailyClickCountDto> response = clickEventService.getCurrentUserDailyClickCounts(from, to);
         return ResponseEntity.ok(response);
     }
 }

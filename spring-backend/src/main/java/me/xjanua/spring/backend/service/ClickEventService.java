@@ -3,6 +3,7 @@ package me.xjanua.spring.backend.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import me.xjanua.spring.backend.dto.clickEvent.ClickEventCreateDto;
 import me.xjanua.spring.backend.model.ClickEvent;
 import me.xjanua.spring.backend.model.ShortLink;
 import me.xjanua.spring.backend.repository.ClickEventRepository;
+import me.xjanua.spring.backend.util.SecurityUtil;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +27,7 @@ public class ClickEventService {
         return clickEventRepository.save(clickEvent);
     }
 
-    public List<DailyClickCountDto> getDailyClickCounts(LocalDate from, LocalDate to) {
+    public List<DailyClickCountDto> getCurrentUserDailyClickCounts(LocalDate from, LocalDate to) {
         if (from == null || to == null) {
             throw new IllegalArgumentException("from và to không được null");
         }
@@ -37,8 +39,18 @@ public class ClickEventService {
         LocalDateTime fromDateTime = from.atStartOfDay();
 
         LocalDateTime toExclusive = to.plusDays(1).atStartOfDay();
+        UUID ownerId = SecurityUtil.getCurrentUserId();
 
-        return clickEventRepository.countClicksByDay(fromDateTime, toExclusive);
+        return clickEventRepository.countClicksByDay(ownerId, fromDateTime, toExclusive);
+    }
+
+    public long countByOwnerId(UUID ownerId) {
+        return clickEventRepository.countByShortLink_Owner_Id(ownerId);
+    }
+
+    public long countByOwnerIdAndClickedAtBetween(UUID ownerId, LocalDateTime from, LocalDateTime to) {
+        return clickEventRepository.countByShortLink_Owner_IdAndClickedAtGreaterThanEqualAndClickedAtLessThan(
+                ownerId, from, to);
     }
 
     @Transactional

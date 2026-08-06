@@ -19,13 +19,12 @@ public final class ClickEventExtractor {
 
         String userAgent = request.getHeader("User-Agent");
         String ip = resolveClientIp(request);
-
-        System.out.println("Client IP = " + ip);
         String referrer = request.getHeader("Referer");
 
         return ClickEventCreateDto.builder()
                 .shortLinkId(shortLink.getId())
                 .clickedAt(LocalDateTime.now())
+                .clientIp(ip)
                 .ipHash(hashIp(ip))
                 .userAgent(userAgent)
                 .referrer(referrer)

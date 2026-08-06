@@ -12,10 +12,13 @@ import me.xjanua.spring.backend.dto.clickEvent.ClickEventCreateDto;
 public class RedirectService {
 
     private final ClickEventService clickEventService;
+    private final IpInfoService ipInfoService;
 
     @Async
     @Transactional
     public void recordClickAsync(ClickEventCreateDto dto) {
+        String countryCode = ipInfoService.getCountryCode(dto.getClientIp());
+        dto.setCountryCode(countryCode);
         clickEventService.create(dto);
     }
 }
