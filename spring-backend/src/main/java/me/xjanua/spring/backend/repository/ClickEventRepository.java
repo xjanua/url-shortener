@@ -11,34 +11,33 @@ import org.springframework.data.repository.query.Param;
 import me.xjanua.spring.backend.dto.DailyClickCountDto;
 import me.xjanua.spring.backend.model.ClickEvent;
 
-public interface ClickEventRepository
-    extends JpaRepository<ClickEvent, Long> {
+public interface ClickEventRepository extends JpaRepository<ClickEvent, Long> {
 
-  boolean existsByShortLink_IdAndIpHash(
-      Long shortLinkId,
-      String ipHash);
+        boolean existsByShortLink_IdAndIpHash(
+                        Long shortLinkId,
+                        String ipHash);
 
-  long countByShortLink_Owner_Id(UUID ownerId);
+        long countByShortLink_Owner_Id(UUID ownerId);
 
-  long countByShortLink_Owner_IdAndClickedAtGreaterThanEqualAndClickedAtLessThan(
-      UUID ownerId,
-      LocalDateTime from,
-      LocalDateTime to);
+        long countByShortLink_Owner_IdAndClickedAtGreaterThanEqualAndClickedAtLessThan(
+                        UUID ownerId,
+                        LocalDateTime from,
+                        LocalDateTime to);
 
-  @Query("""
-      select new me.xjanua.spring.backend.dto.DailyClickCountDto(
-          cast(c.clickedAt as LocalDate),
-          count(c.id)
-      )
-      from ClickEvent c
-      where c.shortLink.owner.id = :ownerId
-        and c.clickedAt >= :from
-        and c.clickedAt < :to
-      group by cast(c.clickedAt as LocalDate)
-      order by cast(c.clickedAt as LocalDate)
-      """)
-  List<DailyClickCountDto> countClicksByDay(
-      @Param("ownerId") UUID ownerId,
-      @Param("from") LocalDateTime from,
-      @Param("to") LocalDateTime to);
+        @Query("""
+                        select new me.xjanua.spring.backend.dto.DailyClickCountDto(
+                            cast(c.clickedAt as LocalDate),
+                            count(c.id)
+                        )
+                        from ClickEvent c
+                        where c.shortLink.owner.id = :ownerId
+                          and c.clickedAt >= :from
+                          and c.clickedAt < :to
+                        group by cast(c.clickedAt as LocalDate)
+                        order by cast(c.clickedAt as LocalDate)
+                        """)
+        List<DailyClickCountDto> countClicksByDay(
+                        @Param("ownerId") UUID ownerId,
+                        @Param("from") LocalDateTime from,
+                        @Param("to") LocalDateTime to);
 }
