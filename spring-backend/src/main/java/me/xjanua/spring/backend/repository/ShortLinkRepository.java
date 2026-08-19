@@ -13,6 +13,8 @@ public interface ShortLinkRepository extends JpaRepository<ShortLink, Long>, Jpa
 
     Optional<ShortLink> findByShortCode(String shortCode);
 
+    boolean existsByShortCode(String shortCode);
+
     long countByOwner_Id(UUID ownerId);
 
     long countByOwner_IdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(

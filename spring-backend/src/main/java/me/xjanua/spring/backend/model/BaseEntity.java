@@ -30,13 +30,13 @@ public abstract class BaseEntity {
 
     @PrePersist
     public void handleBeforeCreate() {
-        this.createdBy = SecurityUtil.getCurrentUserIdOrNull();
+        this.createdBy = SecurityUtil.getCurrentUserId();
         this.createdAt = LocalDateTime.now();
     }
 
     @PreUpdate
     public void handleBeforeUpdate() {
-        this.updatedBy = SecurityUtil.getCurrentUserIdOrNull();
+        this.updatedBy = SecurityUtil.getCurrentUserId();
         this.updatedAt = LocalDateTime.now();
     }
 }

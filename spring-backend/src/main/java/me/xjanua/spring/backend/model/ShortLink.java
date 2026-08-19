@@ -22,6 +22,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import me.xjanua.spring.backend.enums.ShortCodeType;
 import me.xjanua.spring.backend.enums.ShortLinkStatus;
 
 @Getter
@@ -57,6 +58,14 @@ public class ShortLink extends BaseEntity {
 
     @Column(name = "short_code", length = 32, nullable = false, unique = true)
     private String shortCode;
+
+    @Column(name = "password", length = 255)
+    private String password;
+
+    @Builder.Default
+    @Column(name = "short_code_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ShortCodeType shortCodeType = ShortCodeType.GENERATED;
 
     @Builder.Default
     @OneToMany(mappedBy = "shortLink", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

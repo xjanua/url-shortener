@@ -10,7 +10,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ShortLinkCreateDto {
+public class ShortLinkUpdateDto {
+
     @NotBlank
     private String originalUrl;
 

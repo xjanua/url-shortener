@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.xjanua.spring.backend.enums.ShortCodeType;
 import me.xjanua.spring.backend.enums.ShortLinkStatus;
 
 @Getter
@@ -13,6 +14,7 @@ public class ShortLinkResponse {
     private String title;
     private String originalUrl;
     private String shortCode;
+    private ShortCodeType shortCodeType;
     private String shortUrl;
     private ShortLinkStatus status;
     private LocalDateTime expiresAt;

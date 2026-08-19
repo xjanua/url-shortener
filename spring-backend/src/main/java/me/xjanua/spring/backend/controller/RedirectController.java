@@ -17,6 +17,7 @@ import me.xjanua.spring.backend.model.ShortLink;
 import me.xjanua.spring.backend.service.RedirectService;
 import me.xjanua.spring.backend.service.ShortLinkService;
 import me.xjanua.spring.backend.util.ClickEventExtractor;
+import me.xjanua.spring.backend.util.CommonUtils;
 
 @RestController
 @RequestMapping("/r")
@@ -27,12 +28,14 @@ public class RedirectController {
     private final ShortLinkService shortLinkService;
 
     @GetMapping("/{shortCode}")
-    public ResponseEntity<?> redirect(@PathVariable(name = "shortCode") String shortCode, HttpServletRequest request) {
+    public ResponseEntity<?> redirect(@PathVariable String shortCode, HttpServletRequest request) {
 
         ShortLink link = shortLinkService.findByShortCode(shortCode);
         ShortLinkStatus status = link.getStatus();
 
-        if (status == ShortLinkStatus.ACTIVE || status == ShortLinkStatus.ARCHIVED) {
+        if ((status == ShortLinkStatus.ACTIVE || status == ShortLinkStatus.ARCHIVED)
+                && !CommonUtils.isExpired(link.getExpiresAt())) {
+
             ClickEventCreateDto eventDto = ClickEventExtractor.extract(request, link);
             redirectService.recordClickAsync(eventDto);
 
