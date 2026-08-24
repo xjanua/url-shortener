@@ -59,6 +59,11 @@ public class ShortLinkService {
                 .orElseThrow(() -> new NotFoundException("Short link not found"));
     }
 
+    public boolean matchesPassword(ShortLink shortLink, String password) {
+        return StringUtils.hasText(shortLink.getPassword())
+                && passwordEncoder.matches(password, shortLink.getPassword());
+    }
+
     public long countByOwnerId(UUID ownerId) {
         return shortLinkRepository.countByOwner_Id(ownerId);
     }

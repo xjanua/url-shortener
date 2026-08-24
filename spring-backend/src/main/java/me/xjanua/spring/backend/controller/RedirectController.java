@@ -6,12 +6,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.xjanua.spring.backend.dto.clickEvent.ClickEventCreateDto;
+import me.xjanua.spring.backend.dto.redirect.ShortLinkUnlockRequest;
 import me.xjanua.spring.backend.enums.ShortLinkStatus;
 import me.xjanua.spring.backend.model.ShortLink;
 import me.xjanua.spring.backend.service.RedirectService;
@@ -28,22 +32,52 @@ public class RedirectController {
     private final ShortLinkService shortLinkService;
 
     @GetMapping("/{shortCode}")
-    public ResponseEntity<?> redirect(@PathVariable String shortCode, HttpServletRequest request) {
+    public ResponseEntity<?> redirect(@PathVariable("shortCode") String shortCode, HttpServletRequest request) {
 
         ShortLink link = shortLinkService.findByShortCode(shortCode);
         ShortLinkStatus status = link.getStatus();
 
-        if ((status == ShortLinkStatus.ACTIVE || status == ShortLinkStatus.ARCHIVED)
-                && !CommonUtils.isExpired(link.getExpiresAt())) {
-
-            ClickEventCreateDto eventDto = ClickEventExtractor.extract(request, link);
-            redirectService.recordClickAsync(eventDto);
-
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(link.getOriginalUrl()))
-                    .build();
+        if ((status != ShortLinkStatus.ACTIVE && status != ShortLinkStatus.ARCHIVED)
+                || CommonUtils.isExpired(link.getExpiresAt())) {
+            return ResponseEntity.status(HttpStatus.GONE).build();
         }
 
-        return ResponseEntity.status(HttpStatus.GONE).build();
+        if (link.getPassword() != null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        recordClick(request, link);
+
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(link.getOriginalUrl()))
+                .build();
+    }
+
+    @PostMapping("/{shortCode}/unlock")
+    public ResponseEntity<Void> unlock(@PathVariable("shortCode") String shortCode,
+            @Valid @RequestBody ShortLinkUnlockRequest request,
+            HttpServletRequest httpRequest) {
+        ShortLink link = shortLinkService.findByShortCode(shortCode);
+        ShortLinkStatus status = link.getStatus();
+
+        if ((status != ShortLinkStatus.ACTIVE && status != ShortLinkStatus.ARCHIVED)
+                || CommonUtils.isExpired(link.getExpiresAt())) {
+            return ResponseEntity.status(HttpStatus.GONE).build();
+        }
+
+        if (!shortLinkService.matchesPassword(link, request.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        recordClick(httpRequest, link);
+
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(link.getOriginalUrl()))
+                .build();
+    }
+
+    private void recordClick(HttpServletRequest request, ShortLink link) {
+        ClickEventCreateDto eventDto = ClickEventExtractor.extract(request, link);
+        redirectService.recordClickAsync(eventDto);
     }
 }
