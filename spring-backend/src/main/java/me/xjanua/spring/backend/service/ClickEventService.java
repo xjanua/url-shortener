@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+
+import me.xjanua.spring.backend.exception.BadRequestException;
+import me.xjanua.spring.backend.exception.ErrorCode;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -29,11 +32,11 @@ public class ClickEventService {
 
     public List<DailyClickCountDto> getCurrentUserDailyClickCounts(LocalDate from, LocalDate to) {
         if (from == null || to == null) {
-            throw new IllegalArgumentException("from và to không được null");
+            throw new BadRequestException(ErrorCode.CLICK_DATE_RANGE_REQUIRED, "from và to không được null");
         }
 
         if (from.isAfter(to)) {
-            throw new IllegalArgumentException("from không được sau to");
+            throw new BadRequestException(ErrorCode.INVALID_CLICK_DATE_RANGE, "from không được sau to");
         }
 
         LocalDateTime fromDateTime = from.atStartOfDay();

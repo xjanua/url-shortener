@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import me.xjanua.spring.backend.dto.RestResponse;
+import me.xjanua.spring.backend.exception.ErrorCode;
 
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
@@ -27,7 +28,7 @@ public class AccessDeniedHandlerCustom implements AccessDeniedHandler {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        RestResponse<?> body = RestResponse.error("Forbidden");
+        RestResponse<?> body = RestResponse.error(ErrorCode.FORBIDDEN, "Forbidden");
 
         response.getWriter().write(objectMapper.writeValueAsString(body));
     }

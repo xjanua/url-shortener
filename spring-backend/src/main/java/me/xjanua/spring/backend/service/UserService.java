@@ -16,6 +16,7 @@ import me.xjanua.spring.backend.dto.user.UserDetailResponse;
 import me.xjanua.spring.backend.dto.user.UserRegisterRequest;
 import me.xjanua.spring.backend.enums.UserStatus;
 import me.xjanua.spring.backend.exception.BadRequestException;
+import me.xjanua.spring.backend.exception.ErrorCode;
 import me.xjanua.spring.backend.exception.NotFoundException;
 import me.xjanua.spring.backend.mapper.UserMapper;
 import me.xjanua.spring.backend.model.User;
@@ -37,25 +38,25 @@ public class UserService {
 
     public User findById(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found"));
     }
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found"));
     }
 
     public User fetchCurrentUser() {
         return userRepository.findById(SecurityUtil.getCurrentUserId())
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found"));
     }
 
     public User register(UserRegisterRequest request) {
         if (isEmailExists(request.getEmail())) {
-            throw new BadRequestException("Email already exists");
+            throw new BadRequestException(ErrorCode.EMAIL_ALREADY_EXISTS, "Email already exists");
         }
         if (!request.getPassword().equals(request.getConfirmPassword())) {
-            throw new BadRequestException("Password mismatch");
+            throw new BadRequestException(ErrorCode.PASSWORD_MISMATCH, "Password mismatch");
         }
         User user = User.builder()
                 .email(request.getEmail())

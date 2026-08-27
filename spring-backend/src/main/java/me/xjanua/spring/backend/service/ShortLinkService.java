@@ -24,6 +24,7 @@ import me.xjanua.spring.backend.dto.shortLink.ShortLinkUpdateDto;
 import me.xjanua.spring.backend.enums.ShortCodeType;
 import me.xjanua.spring.backend.enums.ShortLinkStatus;
 import me.xjanua.spring.backend.exception.BadRequestException;
+import me.xjanua.spring.backend.exception.ErrorCode;
 import me.xjanua.spring.backend.exception.NotFoundException;
 import me.xjanua.spring.backend.mapper.ShortLinkMapper;
 import me.xjanua.spring.backend.model.ShortLink;
@@ -51,12 +52,12 @@ public class ShortLinkService {
 
     public ShortLink findByShortCode(String shortCode) {
         return shortLinkRepository.findByShortCode(shortCode)
-                .orElseThrow(() -> new NotFoundException("Short link not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.SHORT_LINK_NOT_FOUND, "Short link not found"));
     }
 
     public ShortLink findById(Long id) {
         return shortLinkRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Short link not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.SHORT_LINK_NOT_FOUND, "Short link not found"));
     }
 
     public boolean matchesPassword(ShortLink shortLink, String password) {
@@ -102,7 +103,7 @@ public class ShortLinkService {
         String shortCode = hasCustomShortCode ? request.getShortCode().trim() : ShortCodeGenerator.generate();
 
         if (hasCustomShortCode && shortLinkRepository.existsByShortCode(shortCode)) {
-            throw new BadRequestException("shortCode đã được sử dụng");
+            throw new BadRequestException(ErrorCode.SHORT_CODE_ALREADY_EXISTS, "shortCode đã được sử dụng");
         }
 
         User user = userService.fetchCurrentUser();
@@ -138,7 +139,7 @@ public class ShortLinkService {
             String shortCode = request.getShortCode().trim();
 
             if (!shortCode.equals(shortLink.getShortCode()) && shortLinkRepository.existsByShortCode(shortCode)) {
-                throw new BadRequestException("shortCode đã được sử dụng");
+                throw new BadRequestException(ErrorCode.SHORT_CODE_ALREADY_EXISTS, "shortCode đã được sử dụng");
             }
 
             shortLink.setShortCode(shortCode);
@@ -173,7 +174,8 @@ public class ShortLinkService {
         }
 
         if (shortLink.getStatus() == ShortLinkStatus.DELETED) {
-            throw new BadRequestException("Short link đã bị xoá và không thể thay đổi trạng thái");
+            throw new BadRequestException(ErrorCode.SHORT_LINK_DELETED,
+                    "Short link đã bị xoá và không thể thay đổi trạng thái");
         }
 
         shortLink.setStatus(request.getStatus());

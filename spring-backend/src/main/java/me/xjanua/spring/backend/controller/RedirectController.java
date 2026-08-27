@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import me.xjanua.spring.backend.dto.RestResponseError;
 import me.xjanua.spring.backend.dto.clickEvent.ClickEventCreateDto;
 import me.xjanua.spring.backend.dto.redirect.ShortLinkUnlockRequest;
 import me.xjanua.spring.backend.enums.ShortLinkStatus;
+import me.xjanua.spring.backend.exception.ErrorCode;
 import me.xjanua.spring.backend.model.ShortLink;
 import me.xjanua.spring.backend.service.RedirectService;
 import me.xjanua.spring.backend.service.ShortLinkService;
@@ -40,11 +42,14 @@ public class RedirectController {
 
         if ((status != ShortLinkStatus.ACTIVE && status != ShortLinkStatus.ARCHIVED)
                 || CommonUtils.isExpired(link.getExpiresAt())) {
-            return ResponseEntity.status(HttpStatus.GONE).build();
+            return ResponseEntity.status(HttpStatus.GONE)
+                    .body(new RestResponseError(ErrorCode.SHORT_LINK_GONE, "Short link is inactive or expired"));
         }
 
         if (link.getPassword() != null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new RestResponseError(ErrorCode.SHORT_LINK_PASSWORD_REQUIRED,
+                            "Short link requires a password"));
         }
 
         recordClick(request, link);
@@ -55,7 +60,7 @@ public class RedirectController {
     }
 
     @PostMapping("/{shortCode}/unlock")
-    public ResponseEntity<Void> unlock(@PathVariable("shortCode") String shortCode,
+    public ResponseEntity<?> unlock(@PathVariable("shortCode") String shortCode,
             @Valid @RequestBody ShortLinkUnlockRequest request,
             HttpServletRequest httpRequest) {
         ShortLink link = shortLinkService.findByShortCode(shortCode);
@@ -63,11 +68,13 @@ public class RedirectController {
 
         if ((status != ShortLinkStatus.ACTIVE && status != ShortLinkStatus.ARCHIVED)
                 || CommonUtils.isExpired(link.getExpiresAt())) {
-            return ResponseEntity.status(HttpStatus.GONE).build();
+            return ResponseEntity.status(HttpStatus.GONE)
+                    .body(new RestResponseError(ErrorCode.SHORT_LINK_GONE, "Short link is inactive or expired"));
         }
 
         if (!shortLinkService.matchesPassword(link, request.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new RestResponseError(ErrorCode.INVALID_SHORT_LINK_PASSWORD, "Invalid password"));
         }
 
         recordClick(httpRequest, link);

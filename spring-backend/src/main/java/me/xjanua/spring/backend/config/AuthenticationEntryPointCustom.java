@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import me.xjanua.spring.backend.dto.RestResponse;
+import me.xjanua.spring.backend.exception.ErrorCode;
 
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
@@ -27,7 +28,7 @@ public class AuthenticationEntryPointCustom implements AuthenticationEntryPoint 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        RestResponse<?> body = RestResponse.error("Unauthorized");
+        RestResponse<?> body = RestResponse.error(ErrorCode.UNAUTHORIZED, "Unauthorized");
 
         response.getWriter().write(objectMapper.writeValueAsString(body));
     }

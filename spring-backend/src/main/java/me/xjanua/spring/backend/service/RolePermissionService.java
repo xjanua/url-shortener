@@ -13,6 +13,7 @@ import me.xjanua.spring.backend.dto.PaginationDTO;
 import me.xjanua.spring.backend.dto.rolePermission.RolePermissionRequest;
 import me.xjanua.spring.backend.dto.rolePermission.RolePermissionResponse;
 import me.xjanua.spring.backend.exception.BadRequestException;
+import me.xjanua.spring.backend.exception.ErrorCode;
 import me.xjanua.spring.backend.exception.NotFoundException;
 import me.xjanua.spring.backend.mapper.RolePermissionMapper;
 import me.xjanua.spring.backend.model.Permission;
@@ -36,7 +37,8 @@ public class RolePermissionService {
 
     public RolePermission findById(Long id) {
         return rolePermissionRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Role permission not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ROLE_PERMISSION_NOT_FOUND,
+                        "Role permission not found"));
     }
 
     public void delete(Long id) {
@@ -77,7 +79,8 @@ public class RolePermissionService {
         Permission permission = permissionService.findById(request.getPermissionId());
 
         rolePermissionRepository.findByRoleAndPermission(role, permission).ifPresent(rp -> {
-            throw new BadRequestException("Role permission already exists");
+            throw new BadRequestException(ErrorCode.ROLE_PERMISSION_ALREADY_EXISTS,
+                    "Role permission already exists");
         });
 
         RolePermission rolePermission = new RolePermission();

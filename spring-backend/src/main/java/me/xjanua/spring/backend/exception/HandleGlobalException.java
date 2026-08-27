@@ -23,19 +23,25 @@ public class HandleGlobalException {
                         BadRequestException.class
         })
         public ResponseEntity<RestResponseError> handleBadRequest(Exception ex) {
+                String code = ErrorCode.INVALID_ARGUMENT;
                 String message = ex.getMessage();
 
                 if (ex instanceof MethodArgumentNotValidException e) {
+                        code = ErrorCode.VALIDATION_ERROR;
                         message = e.getBindingResult()
                                         .getFieldErrors()
                                         .stream()
                                         .map(f -> f.getDefaultMessage())
                                         .findFirst()
                                         .orElse("Validation error");
+                } else if (ex instanceof HttpMessageNotReadableException) {
+                        code = ErrorCode.INVALID_REQUEST_BODY;
+                } else if (ex instanceof BadRequestException e) {
+                        code = e.getCode();
                 }
 
                 return ResponseEntity.badRequest()
-                                .body(new RestResponseError(message));
+                                .body(new RestResponseError(code, message));
         }
 
         @ExceptionHandler({
@@ -44,24 +50,29 @@ public class HandleGlobalException {
         })
         public ResponseEntity<RestResponseError> handleUnauthorized(Exception ex) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                .body(new RestResponseError(ex.getMessage()));
+                                .body(new RestResponseError(ErrorCode.INVALID_CREDENTIALS, ex.getMessage()));
         }
 
         @ExceptionHandler(AccessDeniedException.class)
         public ResponseEntity<RestResponseError> handleForbidden(Exception ex) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(new RestResponseError("Access denied"));
+                                .body(new RestResponseError(ErrorCode.FORBIDDEN, "Access denied"));
         }
 
         @ExceptionHandler({ NotFoundException.class, NoResourceFoundException.class })
         public ResponseEntity<RestResponseError> handleNotFound(Exception ex) {
+                String code = ex instanceof NotFoundException e
+                                ? e.getCode()
+                                : ErrorCode.RESOURCE_NOT_FOUND;
+
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                .body(new RestResponseError(ex.getMessage()));
+                                .body(new RestResponseError(code, ex.getMessage()));
         }
 
         @ExceptionHandler(Exception.class)
         public ResponseEntity<RestResponseError> handleException(Exception ex) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body(new RestResponseError("Internal server error"));
+                                .body(new RestResponseError(ErrorCode.INTERNAL_SERVER_ERROR,
+                                                "Internal server error"));
         }
 }

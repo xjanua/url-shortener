@@ -13,6 +13,7 @@ import me.xjanua.spring.backend.dto.PaginationDTO;
 import me.xjanua.spring.backend.dto.role.RoleRequest;
 import me.xjanua.spring.backend.dto.role.RoleResponse;
 import me.xjanua.spring.backend.exception.NotFoundException;
+import me.xjanua.spring.backend.exception.ErrorCode;
 import me.xjanua.spring.backend.mapper.RoleMapper;
 import me.xjanua.spring.backend.model.Role;
 import me.xjanua.spring.backend.repository.RoleRepository;
@@ -50,7 +51,8 @@ public class RoleService {
     }
 
     public Role findById(Long id) {
-        return roleRepository.findById(id).orElseThrow(() -> new NotFoundException("Role not found"));
+        return roleRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ROLE_NOT_FOUND, "Role not found"));
     }
 
     public Role create(RoleRequest request) {

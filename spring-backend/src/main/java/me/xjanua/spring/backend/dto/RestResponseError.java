@@ -10,5 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RestResponseError {
+    private String code;
     private String message;
 }

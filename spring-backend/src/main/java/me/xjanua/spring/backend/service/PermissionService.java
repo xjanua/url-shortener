@@ -13,6 +13,7 @@ import me.xjanua.spring.backend.dto.PaginationDTO;
 import me.xjanua.spring.backend.dto.permission.PermissionRequest;
 import me.xjanua.spring.backend.dto.permission.PermissionResponse;
 import me.xjanua.spring.backend.exception.NotFoundException;
+import me.xjanua.spring.backend.exception.ErrorCode;
 import me.xjanua.spring.backend.mapper.PermissionMapper;
 import me.xjanua.spring.backend.model.Permission;
 import me.xjanua.spring.backend.repository.PermissionRepository;
@@ -26,9 +27,9 @@ public class PermissionService {
     private final PermissionMapper permissionMapper;
 
     public Permission findById(Long id) {
-        return permissionRepository.findById(id).orElseThrow(() -> new NotFoundException("Permission not found"));
+        return permissionRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.PERMISSION_NOT_FOUND, "Permission not found"));
     }
-
 
     public Permission save(Permission permission) {
         return permissionRepository.save(permission);
@@ -70,4 +71,3 @@ public class PermissionService {
         permissionRepository.delete(permission);
     }
 }
-

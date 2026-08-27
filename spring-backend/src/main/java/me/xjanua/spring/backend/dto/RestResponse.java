@@ -19,7 +19,7 @@ public class RestResponse<T> {
         return new RestResponse<>(true, null, data);
     }
 
-    public static <T> RestResponse<T> error(String message) {
-        return new RestResponse<>(false, new RestResponseError(message), null);
+    public static <T> RestResponse<T> error(String code, String message) {
+        return new RestResponse<>(false, new RestResponseError(code, message), null);
     }
 }

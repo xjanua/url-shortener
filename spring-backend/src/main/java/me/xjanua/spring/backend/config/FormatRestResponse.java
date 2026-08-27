@@ -11,6 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import jakarta.servlet.http.HttpServletResponse;
 import me.xjanua.spring.backend.dto.RestResponse;
 import me.xjanua.spring.backend.dto.RestResponseError;
+import me.xjanua.spring.backend.exception.ErrorCode;
 
 @RestControllerAdvice
 public class FormatRestResponse implements ResponseBodyAdvice {
@@ -39,11 +40,23 @@ public class FormatRestResponse implements ResponseBodyAdvice {
 
         if (status >= 400) {
             if (body instanceof RestResponseError apiError) {
-                return RestResponse.error(apiError.getMessage());
+                return RestResponse.error(apiError.getCode(), apiError.getMessage());
             }
-            return RestResponse.error(body != null ? body.toString() : "Unknown error");
+            return RestResponse.error(resolveErrorCode(status), body != null ? body.toString() : "Unknown error");
         }
 
         return RestResponse.success(body);
+    }
+
+    private String resolveErrorCode(int status) {
+        return switch (status) {
+            case HttpServletResponse.SC_BAD_REQUEST -> ErrorCode.BAD_REQUEST;
+            case HttpServletResponse.SC_UNAUTHORIZED -> ErrorCode.UNAUTHORIZED;
+            case HttpServletResponse.SC_FORBIDDEN -> ErrorCode.FORBIDDEN;
+            case HttpServletResponse.SC_NOT_FOUND -> ErrorCode.RESOURCE_NOT_FOUND;
+            default -> status >= HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+                    ? ErrorCode.INTERNAL_SERVER_ERROR
+                    : ErrorCode.BAD_REQUEST;
+        };
     }
 }
