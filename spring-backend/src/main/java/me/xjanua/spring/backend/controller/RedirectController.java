@@ -1,6 +1,7 @@
 package me.xjanua.spring.backend.controller;
 
 import java.net.URI;
+import java.util.Locale;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,7 +50,7 @@ public class RedirectController {
         recordClick(request, link);
 
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(link.getOriginalUrl()))
+                .location(URI.create(resolveDestinationUrl(link, request)))
                 .build();
     }
 
@@ -72,12 +73,32 @@ public class RedirectController {
         recordClick(httpRequest, link);
 
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(link.getOriginalUrl()))
+                .location(URI.create(resolveDestinationUrl(link, httpRequest)))
                 .build();
     }
 
     private void recordClick(HttpServletRequest request, ShortLink link) {
         ClickEventCreateDto eventDto = ClickEventExtractor.extract(request, link);
         redirectService.recordClickAsync(eventDto);
+    }
+
+    private String resolveDestinationUrl(ShortLink link, HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        String normalizedUserAgent = userAgent == null ? "" : userAgent.toLowerCase(Locale.ROOT);
+
+        if (normalizedUserAgent.contains("android") && link.getAndroidUrl() != null) {
+            return link.getAndroidUrl();
+        }
+
+        if ((normalizedUserAgent.contains("iphone") || normalizedUserAgent.contains("ipad"))
+                && link.getIosUrl() != null) {
+            return link.getIosUrl();
+        }
+
+        if (!normalizedUserAgent.contains("mobile") && link.getDesktopUrl() != null) {
+            return link.getDesktopUrl();
+        }
+
+        return link.getOriginalUrl();
     }
 }

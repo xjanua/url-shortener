@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import me.xjanua.spring.backend.dto.PaginationDTO;
 import me.xjanua.spring.backend.dto.user.UserDetailResponse;
 import me.xjanua.spring.backend.dto.user.UserRegisterRequest;
+import me.xjanua.spring.backend.enums.UserStatus;
 import me.xjanua.spring.backend.exception.BadRequestException;
 import me.xjanua.spring.backend.exception.NotFoundException;
 import me.xjanua.spring.backend.mapper.UserMapper;
@@ -59,6 +60,7 @@ public class UserService {
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .status(UserStatus.ACTIVE)
                 .build();
         return save(user);
     }

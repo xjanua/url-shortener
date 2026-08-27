@@ -46,6 +46,15 @@ public class ShortLink extends BaseEntity {
     @Column(name = "original_url", length = 2048, nullable = false)
     private String originalUrl;
 
+    @Column(name = "android_url", length = 2048)
+    private String androidUrl;
+
+    @Column(name = "ios_url", length = 2048)
+    private String iosUrl;
+
+    @Column(name = "desktop_url", length = 2048)
+    private String desktopUrl;
+
     @Column(name = "title", length = 255)
     private String title;
 

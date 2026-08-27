@@ -16,6 +16,9 @@ public class ShortLinkResponseSummaryDto {
     private ShortCodeType shortCodeType;
     private ShortLinkStatus status;
     private String originalUrl;
+    private String androidUrl;
+    private String iosUrl;
+    private String desktopUrl;
     private Long clickCount;
     private Long uniqueClicks;
     private LocalDateTime createdAt;

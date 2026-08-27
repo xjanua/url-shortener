@@ -110,6 +110,9 @@ public class ShortLinkService {
         ShortLink shortLink = ShortLink.builder()
                 .owner(user)
                 .originalUrl(request.getOriginalUrl())
+                .androidUrl(normalizeOptionalUrl(request.getAndroidUrl()))
+                .iosUrl(normalizeOptionalUrl(request.getIosUrl()))
+                .desktopUrl(normalizeOptionalUrl(request.getDesktopUrl()))
                 .title(request.getTitle())
                 .shortCode(shortCode)
                 .shortCodeType(hasCustomShortCode ? ShortCodeType.CUSTOM : ShortCodeType.GENERATED)
@@ -143,6 +146,9 @@ public class ShortLinkService {
         }
 
         shortLink.setOriginalUrl(request.getOriginalUrl());
+        shortLink.setAndroidUrl(normalizeOptionalUrl(request.getAndroidUrl()));
+        shortLink.setIosUrl(normalizeOptionalUrl(request.getIosUrl()));
+        shortLink.setDesktopUrl(normalizeOptionalUrl(request.getDesktopUrl()));
         shortLink.setTitle(request.getTitle());
         shortLink.setExpiresAt(request.getExpiresAt());
 
@@ -187,5 +193,9 @@ public class ShortLinkService {
 
     public boolean isOwner(UUID userId, UUID ownerCurrent) {
         return Objects.equals(userId, ownerCurrent);
+    }
+
+    private String normalizeOptionalUrl(String url) {
+        return StringUtils.hasText(url) ? url.trim() : null;
     }
 }

@@ -13,6 +13,9 @@ public class ShortLinkResponse {
     private Long id;
     private String title;
     private String originalUrl;
+    private String androidUrl;
+    private String iosUrl;
+    private String desktopUrl;
     private String shortCode;
     private ShortCodeType shortCodeType;
     private String shortUrl;

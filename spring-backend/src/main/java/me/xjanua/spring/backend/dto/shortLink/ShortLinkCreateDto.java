@@ -14,6 +14,15 @@ public class ShortLinkCreateDto {
     @NotBlank
     private String originalUrl;
 
+    @Size(max = 2048, message = "androidUrl không được dài quá 2048 ký tự")
+    private String androidUrl;
+
+    @Size(max = 2048, message = "iosUrl không được dài quá 2048 ký tự")
+    private String iosUrl;
+
+    @Size(max = 2048, message = "desktopUrl không được dài quá 2048 ký tự")
+    private String desktopUrl;
+
     private String title;
 
     @Size(max = 32, message = "shortCode không được dài quá 32 ký tự")
