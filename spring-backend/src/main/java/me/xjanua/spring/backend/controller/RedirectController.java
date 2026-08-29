@@ -1,32 +1,33 @@
 package me.xjanua.spring.backend.controller;
 
-import java.net.URI;
 import java.util.Locale;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import me.xjanua.spring.backend.dto.RestResponseError;
 import me.xjanua.spring.backend.dto.clickEvent.ClickEventCreateDto;
 import me.xjanua.spring.backend.dto.redirect.ShortLinkUnlockRequest;
 import me.xjanua.spring.backend.enums.ShortLinkStatus;
-import me.xjanua.spring.backend.exception.ErrorCode;
+import me.xjanua.spring.backend.exception.NotFoundException;
 import me.xjanua.spring.backend.model.ShortLink;
 import me.xjanua.spring.backend.service.RedirectService;
 import me.xjanua.spring.backend.service.ShortLinkService;
 import me.xjanua.spring.backend.util.ClickEventExtractor;
 import me.xjanua.spring.backend.util.CommonUtils;
 
-@RestController
+@Controller
 @RequestMapping("/r")
 @RequiredArgsConstructor
 public class RedirectController {
@@ -35,53 +36,83 @@ public class RedirectController {
     private final ShortLinkService shortLinkService;
 
     @GetMapping("/{shortCode}")
-    public ResponseEntity<?> redirect(@PathVariable("shortCode") String shortCode, HttpServletRequest request) {
-
+    public ModelAndView redirect(@PathVariable("shortCode") String shortCode, HttpServletRequest request) {
         ShortLink link = shortLinkService.findByShortCode(shortCode);
-        ShortLinkStatus status = link.getStatus();
 
-        if ((status != ShortLinkStatus.ACTIVE && status != ShortLinkStatus.ARCHIVED)
-                || CommonUtils.isExpired(link.getExpiresAt())) {
-            return ResponseEntity.status(HttpStatus.GONE)
-                    .body(new RestResponseError(ErrorCode.SHORT_LINK_GONE, "Short link is inactive or expired"));
+        if (!isAvailable(link)) {
+            return goneView(link);
         }
 
         if (link.getPassword() != null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new RestResponseError(ErrorCode.SHORT_LINK_PASSWORD_REQUIRED,
-                            "Short link requires a password"));
+            return unlockView(link, new ShortLinkUnlockRequest());
         }
 
         recordClick(request, link);
-
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(resolveDestinationUrl(link, request)))
-                .build();
+        return redirectView(resolveDestinationUrl(link, request));
     }
 
     @PostMapping("/{shortCode}/unlock")
-    public ResponseEntity<?> unlock(@PathVariable("shortCode") String shortCode,
-            @Valid @RequestBody ShortLinkUnlockRequest request,
+    public ModelAndView unlock(@PathVariable("shortCode") String shortCode,
+            @Valid @ModelAttribute("unlockRequest") ShortLinkUnlockRequest request,
+            BindingResult bindingResult,
             HttpServletRequest httpRequest) {
         ShortLink link = shortLinkService.findByShortCode(shortCode);
-        ShortLinkStatus status = link.getStatus();
 
-        if ((status != ShortLinkStatus.ACTIVE && status != ShortLinkStatus.ARCHIVED)
-                || CommonUtils.isExpired(link.getExpiresAt())) {
-            return ResponseEntity.status(HttpStatus.GONE)
-                    .body(new RestResponseError(ErrorCode.SHORT_LINK_GONE, "Short link is inactive or expired"));
+        if (!isAvailable(link)) {
+            return goneView(link);
+        }
+
+        if (bindingResult.hasErrors()) {
+            return unlockView(link, request);
         }
 
         if (!shortLinkService.matchesPassword(link, request.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new RestResponseError(ErrorCode.INVALID_SHORT_LINK_PASSWORD, "Invalid password"));
+            bindingResult.rejectValue("password", "invalid", "Mật khẩu không đúng");
+            return unlockView(link, request);
         }
 
         recordClick(httpRequest, link);
+        return redirectView(resolveDestinationUrl(link, httpRequest));
+    }
 
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(resolveDestinationUrl(link, httpRequest)))
-                .build();
+    @ExceptionHandler(NotFoundException.class)
+    public ModelAndView handleNotFound(NotFoundException exception) {
+        ModelAndView view = new ModelAndView("redirect/not-found");
+        view.setStatus(HttpStatus.NOT_FOUND);
+        return view;
+    }
+
+    private boolean isAvailable(ShortLink link) {
+        ShortLinkStatus status = link.getStatus();
+        return (status == ShortLinkStatus.ACTIVE || status == ShortLinkStatus.ARCHIVED)
+                && !CommonUtils.isExpired(link.getExpiresAt());
+    }
+
+    private ModelAndView unlockView(ShortLink link, ShortLinkUnlockRequest request) {
+        ModelAndView view = new ModelAndView("redirect/unlock");
+        view.addObject("shortCode", link.getShortCode());
+        view.addObject("linkTitle", link.getTitle());
+
+        if (!view.getModel().containsKey("unlockRequest")) {
+            view.addObject("unlockRequest", request);
+        }
+
+        return view;
+    }
+
+    private ModelAndView goneView(ShortLink link) {
+        ModelAndView view = new ModelAndView("redirect/gone");
+        view.addObject("linkTitle", link.getTitle());
+        view.setStatus(HttpStatus.GONE);
+        return view;
+    }
+
+    private ModelAndView redirectView(String destinationUrl) {
+        RedirectView redirectView = new RedirectView(destinationUrl);
+        redirectView.setStatusCode(HttpStatus.FOUND);
+        ModelAndView view = new ModelAndView(redirectView);
+        view.setStatus(HttpStatus.FOUND);
+        return view;
     }
 
     private void recordClick(HttpServletRequest request, ShortLink link) {

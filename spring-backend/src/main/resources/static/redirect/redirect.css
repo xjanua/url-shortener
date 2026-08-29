@@ -1,0 +1,221 @@
+:root {
+    color-scheme: light;
+    --canvas: #f7f8fa;
+    --surface: #ffffff;
+    --foreground: #101828;
+    --muted: #475467;
+    --border: #e4e7ec;
+    --input: #cfd4dc;
+    --primary: #1457b9;
+    --primary-hover: #104999;
+    --danger: #b42318;
+    --danger-soft: #fff3f1;
+    --focus: rgba(20, 87, 185, 0.18);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-width: 320px;
+    background: var(--canvas);
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    color: var(--foreground);
+    background:
+        radial-gradient(circle at 15% 10%, rgba(20, 87, 185, 0.08), transparent 28rem),
+        var(--canvas);
+    font-family: Inter, Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+.page-shell {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 2.5rem 1rem;
+}
+
+.card {
+    width: min(100%, 28rem);
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.875rem;
+    background: var(--surface);
+    box-shadow: 0 12px 38px rgba(16, 24, 40, 0.07);
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 2rem;
+    color: var(--foreground);
+    font-size: 0.9375rem;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+}
+
+.brand-mark,
+.status-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+}
+
+.brand-mark {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.625rem;
+    color: #fff;
+    background: var(--primary);
+}
+
+.status-icon {
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1.25rem;
+    border-radius: 50%;
+    color: var(--primary);
+    background: #edf4ff;
+}
+
+.status-icon--danger {
+    color: var(--danger);
+    background: var(--danger-soft);
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 7vw, 2rem);
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+}
+
+.description {
+    margin: 0.75rem 0 1.75rem;
+    color: var(--muted);
+    font-size: 0.9375rem;
+    line-height: 1.65;
+}
+
+.link-title {
+    color: var(--foreground);
+    font-weight: 700;
+}
+
+.field {
+    display: grid;
+    gap: 0.5rem;
+}
+
+label {
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+input {
+    width: 100%;
+    height: 2.875rem;
+    padding: 0 0.875rem;
+    border: 1px solid var(--input);
+    border-radius: 0.625rem;
+    outline: none;
+    color: var(--foreground);
+    background: var(--surface);
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+input:hover {
+    border-color: #98a2b3;
+}
+
+input:focus-visible {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--focus);
+}
+
+input[aria-invalid="true"] {
+    border-color: var(--danger);
+}
+
+.field-hint,
+.field-error {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+.field-hint {
+    color: var(--muted);
+}
+
+.field-error {
+    color: var(--danger);
+    font-weight: 650;
+}
+
+.button {
+    display: inline-flex;
+    width: 100%;
+    min-height: 2.875rem;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1.25rem;
+    padding: 0.75rem 1rem;
+    border: 0;
+    border-radius: 0.625rem;
+    color: #fff;
+    background: var(--primary);
+    cursor: pointer;
+    font-size: 0.9375rem;
+    font-weight: 750;
+    transition: background-color 140ms ease, transform 140ms ease;
+}
+
+.button:hover {
+    background: var(--primary-hover);
+}
+
+.button:active {
+    transform: translateY(1px);
+}
+
+.button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--focus);
+}
+
+.footer-note {
+    margin: 1.75rem 0 0;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    color: #667085;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
+@media (min-width: 640px) {
+    .card {
+        padding: 2rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+    }
+}

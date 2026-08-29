@@ -2,6 +2,7 @@ package me.xjanua.spring.backend.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -11,15 +12,18 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class CorsConfig {
 
-    final String[] allowedOrigins = {
-        "*"
-    };
+    private final String[] allowedOrigins;
+
+    public CorsConfig(
+            @Value("${frontend.allowed-origins:http://localhost:3000}") String[] allowedOrigins) {
+        this.allowedOrigins = allowedOrigins;
+    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        configuration.setAllowedOriginPatterns(List.of(allowedOrigins));
+        configuration.setAllowedOrigins(List.of(allowedOrigins));
         
         configuration.setAllowedMethods(List.of("*"));
         configuration.setAllowedHeaders(List.of("*"));

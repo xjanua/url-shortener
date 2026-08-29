@@ -34,6 +34,13 @@ public class UserController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<UserDetailResponse> getCurrentUser() {
+        User user = userService.fetchCurrentUser();
+        UserDetailResponse userDetailResponse = userMapper.toDetailResponse(user);
+        return ResponseEntity.ok(userDetailResponse);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<UserDetailResponse> getUser(@PathVariable UUID id) {
         User user = userService.findById(id);

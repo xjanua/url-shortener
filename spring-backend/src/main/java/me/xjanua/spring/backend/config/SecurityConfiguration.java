@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -25,14 +26,17 @@ public class SecurityConfiguration {
     private final CorsConfig corsConfig;
     private final AccessDeniedHandlerCustom accessDeniedHandler;
     private final AuthenticationEntryPointCustom authenticationEntryPoint;
+    private final BearerTokenResolver bearerTokenResolver;
 
     public SecurityConfiguration(JwtAuthenticationConverter jwtAuthenticationConverter, CorsConfig corsConfig,
             AccessDeniedHandlerCustom accessDeniedHandler,
-            AuthenticationEntryPointCustom authenticationEntryPoint) {
+            AuthenticationEntryPointCustom authenticationEntryPoint,
+            BearerTokenResolver bearerTokenResolver) {
         this.jwtAuthenticationConverter = jwtAuthenticationConverter;
         this.corsConfig = corsConfig;
         this.accessDeniedHandler = accessDeniedHandler;
         this.authenticationEntryPoint = authenticationEntryPoint;
+        this.bearerTokenResolver = bearerTokenResolver;
     }
 
     @Bean
@@ -48,11 +52,13 @@ public class SecurityConfiguration {
                 .csrf(c -> c.disable())
 
                 .oauth2ResourceServer((oauth2) -> oauth2
+                        .bearerTokenResolver(bearerTokenResolver)
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
 
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(PUBLIC_URLS).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users/me").authenticated()
                         .anyRequest().permitAll())
 
                 .exceptionHandling(exception -> exception

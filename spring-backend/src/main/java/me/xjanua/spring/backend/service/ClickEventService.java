@@ -3,7 +3,9 @@ package me.xjanua.spring.backend.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -44,7 +46,14 @@ public class ClickEventService {
         LocalDateTime toExclusive = to.plusDays(1).atStartOfDay();
         UUID ownerId = SecurityUtil.getCurrentUserId();
 
-        return clickEventRepository.countClicksByDay(ownerId, fromDateTime, toExclusive);
+        Map<LocalDate, Long> clickCountsByDay = clickEventRepository
+                .countClicksByDay(ownerId, fromDateTime, toExclusive)
+                .stream()
+                .collect(Collectors.toMap(DailyClickCountDto::getDay, DailyClickCountDto::getCount));
+
+        return from.datesUntil(to.plusDays(1))
+                .map(day -> new DailyClickCountDto(day, clickCountsByDay.getOrDefault(day, 0L)))
+                .toList();
     }
 
     public long countByOwnerId(UUID ownerId) {
